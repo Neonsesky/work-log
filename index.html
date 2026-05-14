@@ -200,7 +200,33 @@
   .btn-primary:hover { background: #d8ff70; border-color: #d8ff70; }
   .btn-danger { color: var(--red); border-color: transparent; background: transparent; padding: 6px 8px; }
   .btn-danger:hover { background: var(--red-dim); }
+  .btn-edit { color: var(--muted); border-color: transparent; background: transparent; padding: 6px 8px; }
+  .btn-edit:hover { background: var(--surface2); color: var(--text); }
   .btn-sm { font-size: 12px; padding: 6px 12px; }
+
+  /* EDIT MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); padding: 2rem; width: 480px; max-width: 95vw; }
+  .modal-title { font-size: 16px; font-weight: 500; margin-bottom: 1.5rem; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 1.5rem; justify-content: flex-end; }
+
+  /* THEME */
+  .theme-presets { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .preset-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; background: none; border: none; }
+  .preset-swatch { width: 44px; height: 44px; border-radius: 10px; border: 2px solid transparent; transition: border-color 0.15s; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 5px; }
+  .preset-swatch:hover { border-color: var(--border2); }
+  .preset-swatch.active { border-color: var(--accent); }
+  .preset-swatch span { border-radius: 3px; display: block; }
+  .preset-label { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .color-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .color-row:last-child { border-bottom: none; }
+  .color-label { font-size: 13px; }
+  .color-sub { font-size: 11px; color: var(--muted); }
+  .color-input-wrap { display: flex; align-items: center; gap: 8px; }
+  input[type="color"] { width: 34px; height: 34px; border: 1px solid var(--border2); border-radius: var(--radius-sm); cursor: pointer; background: none; padding: 2px; }
+  .hex-input { font-family: var(--mono); font-size: 12px; width: 76px; background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 6px 8px; outline: none; color: var(--text); }
+  .hex-input:focus { border-color: var(--accent); }
 
   /* HISTORY */
   .filter-row { display: flex; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
@@ -397,15 +423,9 @@
             <input type="number" id="f-count" min="1" placeholder="e.g. 6" />
           </div>
         </div>
-        <div class="form-grid">
-          <div class="field">
-            <label>Project / topic name</label>
-            <input type="text" id="f-project" placeholder="e.g. Ramadan campaign hero" />
-          </div>
-          <div class="field">
-            <label>Client / brand</label>
-            <input type="text" id="f-client" placeholder="e.g. mb.insider, internal..." />
-          </div>
+        <div class="field" style="margin-bottom:1rem;">
+          <label>Project / topic name</label>
+          <input type="text" id="f-project" placeholder="e.g. Ramadan campaign hero" />
         </div>
         <div class="field" style="margin-bottom:1rem;">
           <label>Creative type</label>
@@ -449,7 +469,7 @@
       <div class="table-wrap">
         <table class="entries-table">
           <thead><tr>
-            <th>Date</th><th>Project / topic</th><th>Type</th><th>Client</th><th style="text-align:right;">Creatives</th><th></th>
+            <th>Date</th><th>Project / topic</th><th>Type</th><th style="text-align:right;">Creatives</th><th></th>
           </tr></thead>
           <tbody id="history-body"></tbody>
         </table>
@@ -526,9 +546,52 @@
         <h3>Updating this app in the future</h3>
         <p>When you ask for a new version of this file with new features or fixes, just replace the HTML file — your Google Sheet data is completely separate and will never be affected. The URL you entered here is saved in your browser, so you won't need to re-enter it.</p>
       </div>
+
+      <div class="config-card">
+        <h3>Theme & Colors</h3>
+        <p>Pick a preset or dial in your own colors. Saved to this browser automatically.</p>
+        <div style="margin-bottom:1rem;">
+          <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:10px;">Presets</div>
+          <div class="theme-presets" id="theme-presets"></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px;">Custom</div>
+        <div id="color-rows"></div>
+        <div style="margin-top:1rem;display:flex;gap:10px;">
+          <button class="btn btn-primary btn-sm" onclick="saveTheme()">Apply theme</button>
+          <button class="btn btn-sm" onclick="resetTheme()">Reset to default</button>
+        </div>
+      </div>
     </div>
 
   </main>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-title">Edit entry</div>
+    <input type="hidden" id="edit-id" />
+    <div class="form-grid" style="margin-bottom:1rem;">
+      <div class="field"><label>Date</label><input type="date" id="edit-date" /></div>
+      <div class="field"><label>Number of creatives</label><input type="number" id="edit-count" min="1" /></div>
+    </div>
+    <div class="field" style="margin-bottom:1rem;">
+      <label>Project / topic name</label>
+      <input type="text" id="edit-project" />
+    </div>
+    <div class="field" style="margin-bottom:1rem;">
+      <label>Creative type</label>
+      <div class="type-pills" id="edit-type-pills"></div>
+    </div>
+    <div class="field">
+      <label>Notes (optional)</label>
+      <textarea id="edit-notes" style="min-height:60px;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Save changes</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -616,6 +679,7 @@ function handleRequest(e) {
 let entries = [];
 let sheetUrl = '';
 let selectedType = '';
+let editSelectedType = '';
 
 // ── INIT ─────────────────────────────────────────────────────────
 window.onload = () => {
@@ -632,6 +696,7 @@ window.onload = () => {
     setDate();
   }
   populateTypeFilter();
+  initTheme();
 };
 
 function setDate() {
@@ -694,7 +759,6 @@ async function addEntry() {
   const date    = document.getElementById('f-date').value;
   const count   = parseInt(document.getElementById('f-count').value);
   const project = document.getElementById('f-project').value.trim();
-  const client  = document.getElementById('f-client').value.trim();
   const notes   = document.getElementById('f-notes').value.trim();
 
   if (!date)    { toast('Please enter a date', true); return; }
@@ -702,7 +766,7 @@ async function addEntry() {
   if (!project) { toast('Please enter a project name', true); return; }
   if (!sheetUrl){ toast('Connect your Google Sheet in Settings first', true); return; }
 
-  const entry = { id: Date.now(), date, project, type: selectedType, client, count, notes };
+  const entry = { id: Date.now(), date, project, type: selectedType, client: '', count, notes };
   entries.unshift(entry);
   localStorage.setItem(CACHE_KEY, JSON.stringify(entries));
   updateMetrics();
@@ -735,7 +799,6 @@ async function deleteEntry(id) {
 function clearForm() {
   document.getElementById('f-count').value = '';
   document.getElementById('f-project').value = '';
-  document.getElementById('f-client').value = '';
   document.getElementById('f-notes').value = '';
   selectedType = '';
   renderTypePills();
@@ -793,14 +856,14 @@ function renderHistory() {
   let filtered = entries.filter(e => {
     if (fm && !e.date.startsWith(fm)) return false;
     if (ft && e.type !== ft) return false;
-    if (search && !e.project.toLowerCase().includes(search) && !(e.client||'').toLowerCase().includes(search)) return false;
+    if (search && !e.project.toLowerCase().includes(search)) return false;
     return true;
   });
   const total = filtered.reduce((a,e)=>a+(e.count||0),0);
   document.getElementById('history-sub').textContent = filtered.length + ' entries · ' + total + ' total creatives';
   const body = document.getElementById('history-body');
   if (!filtered.length) {
-    body.innerHTML = `<tr><td colspan="6"><div class="empty-state">No entries yet — log your first entry</div></td></tr>`;
+    body.innerHTML = `<tr><td colspan="5"><div class="empty-state">No entries yet — log your first entry</div></td></tr>`;
     return;
   }
   body.innerHTML = filtered.map(e => {
@@ -811,9 +874,11 @@ function renderHistory() {
       <td><div class="entry-date">${fmtDate(e.date)}</div></td>
       <td><div class="entry-project">${esc(e.project)}</div>${e.notes?`<div class="entry-client">${esc(e.notes)}</div>`:''}</td>
       <td>${badge}</td>
-      <td><div class="entry-client">${esc(e.client||'')}</div></td>
       <td style="text-align:right;"><span class="entry-count">${e.count}</span></td>
-      <td><button class="btn btn-danger" onclick="deleteEntry('${e.id}')" aria-label="Delete"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button></td>
+      <td style="text-align:right; white-space:nowrap;">
+        <button class="btn btn-edit" onclick="openEditModal('${e.id}')" aria-label="Edit" title="Edit"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="btn btn-danger" onclick="deleteEntry('${e.id}')" aria-label="Delete" title="Delete"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -911,6 +976,169 @@ function toast(msg, err) {
   el.className = 'toast show' + (err?' err':'');
   clearTimeout(el._t);
   el._t = setTimeout(()=>el.className='toast', 2500);
+}
+
+// ── EDIT MODAL ────────────────────────────────────────────────────
+function openEditModal(id) {
+  const e = entries.find(e => String(e.id) === String(id));
+  if (!e) return;
+  document.getElementById('edit-id').value = e.id;
+  document.getElementById('edit-date').value = e.date;
+  document.getElementById('edit-count').value = e.count;
+  document.getElementById('edit-project').value = e.project;
+  document.getElementById('edit-notes').value = e.notes || '';
+  editSelectedType = e.type || '';
+  renderEditTypePills();
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+}
+
+function renderEditTypePills() {
+  document.getElementById('edit-type-pills').innerHTML = TYPES.map((t,i) =>
+    `<button class="type-pill${editSelectedType===t?' selected':''}" onclick="selectEditType('${t}')" style="${editSelectedType===t?`border-color:${TYPE_COLORS[i%TYPE_COLORS.length].border};color:${TYPE_COLORS[i%TYPE_COLORS.length].color};background:${TYPE_COLORS[i%TYPE_COLORS.length].border}18`:''}">${t}</button>`
+  ).join('');
+}
+
+function selectEditType(t) {
+  editSelectedType = editSelectedType === t ? '' : t;
+  renderEditTypePills();
+}
+
+async function saveEdit() {
+  const id      = document.getElementById('edit-id').value;
+  const date    = document.getElementById('edit-date').value;
+  const count   = parseInt(document.getElementById('edit-count').value);
+  const project = document.getElementById('edit-project').value.trim();
+  const notes   = document.getElementById('edit-notes').value.trim();
+  if (!date || !count || count < 1 || !project) { toast('Please fill in all required fields', true); return; }
+  const idx = entries.findIndex(e => String(e.id) === String(id));
+  if (idx === -1) return;
+  entries[idx] = { ...entries[idx], date, count, project, type: editSelectedType, notes };
+  localStorage.setItem(CACHE_KEY, JSON.stringify(entries));
+  updateMetrics();
+  renderHistory();
+  closeEditModal();
+  toast('Entry updated ✓');
+  // Update in sheet: delete old row and re-add
+  setSyncStatus('loading', 'Saving...');
+  try {
+    await api('delete', { id });
+    await api('add', entries[idx]);
+    setSyncStatus('ok', 'Saved');
+  } catch(e) {
+    setSyncStatus('err', 'Sync error');
+  }
+}
+
+// Close modal on overlay click
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+
+// ── THEME ─────────────────────────────────────────────────────────
+const THEME_KEY = 'cwl_theme';
+
+const THEME_VARS = [
+  { key: '--bg',      label: 'Background',    sub: 'Main page background' },
+  { key: '--surface', label: 'Surface',       sub: 'Cards and sidebar' },
+  { key: '--text',    label: 'Text',          sub: 'Primary text color' },
+  { key: '--accent',  label: 'Accent',        sub: 'Buttons, highlights, dots' },
+  { key: '--muted',   label: 'Muted text',    sub: 'Labels and secondary text' },
+  { key: '--border',  label: 'Border',        sub: 'Card and divider lines' },
+];
+
+const PRESETS = [
+  { name: 'Dark', colors: { '--bg':'#0e0e0e','--surface':'#161616','--text':'#f0ede8','--accent':'#c8f060','--muted':'#6b6b6b','--border':'#2a2a2a','--surface2':'#1e1e1e','--border2':'#333','--accent-dim':'#c8f06022','--accent-text':'#0e0e0e' } },
+  { name: 'Light', colors: { '--bg':'#f5f4f0','--surface':'#ffffff','--text':'#1a1a1a','--accent':'#2563eb','--muted':'#888888','--border':'#e0ddd8','--surface2':'#f0eeea','--border2':'#d0cdc8','--accent-dim':'#2563eb18','--accent-text':'#ffffff' } },
+  { name: 'Midnight', colors: { '--bg':'#080c14','--surface':'#0f1623','--text':'#e8edf5','--accent':'#60a8f0','--muted':'#4a5568','--border':'#1e2a3a','--surface2':'#162030','--border2':'#253040','--accent-dim':'#60a8f022','--accent-text':'#080c14' } },
+  { name: 'Forest', colors: { '--bg':'#0a0f0a','--surface':'#121812','--text':'#e8f0e0','--accent':'#60d080','--muted':'#507050','--border':'#1e2e1e','--surface2':'#182818','--border2':'#283828','--accent-dim':'#60d08022','--accent-text':'#0a0f0a' } },
+  { name: 'Rose', colors: { '--bg':'#0f0a0c','--surface':'#1a1015','--text':'#f5e8ec','--accent':'#f06080','--muted':'#6b4a55','--border':'#2a1820','--surface2':'#221520','--border2':'#332028','--accent-dim':'#f0608022','--accent-text':'#0f0a0c' } },
+];
+
+let currentTheme = {};
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  currentTheme = saved ? JSON.parse(saved) : { ...PRESETS[0].colors };
+  applyTheme(currentTheme);
+  renderThemeUI();
+}
+
+function applyTheme(colors) {
+  const root = document.documentElement;
+  Object.entries(colors).forEach(([k,v]) => root.style.setProperty(k, v));
+  // Derived values
+  if (colors['--accent']) {
+    root.style.setProperty('--accent-dim', colors['--accent'] + '22');
+  }
+}
+
+function renderThemeUI() {
+  // Presets
+  document.getElementById('theme-presets').innerHTML = PRESETS.map((p,i) => {
+    const c = p.colors;
+    const isActive = PRESETS.some(pr => pr.name === p.name && pr.colors['--bg'] === (currentTheme['--bg']||'') && pr.colors['--accent'] === (currentTheme['--accent']||''));
+    return `<button class="preset-btn" onclick="applyPreset(${i})">
+      <div class="preset-swatch${isActive?' active':''}" style="background:${c['--surface']};">
+        <span style="background:${c['--accent']};"></span>
+        <span style="background:${c['--text']}22;"></span>
+        <span style="background:${c['--muted']}44;"></span>
+        <span style="background:${c['--border']};"></span>
+      </div>
+      <span class="preset-label">${p.name}</span>
+    </button>`;
+  }).join('');
+
+  // Custom color rows
+  document.getElementById('color-rows').innerHTML = THEME_VARS.map(v => {
+    const val = currentTheme[v.key] || getComputedStyle(document.documentElement).getPropertyValue(v.key).trim();
+    return `<div class="color-row">
+      <div><div class="color-label">${v.label}</div><div class="color-sub">${v.sub}</div></div>
+      <div class="color-input-wrap">
+        <input type="color" value="${val}" oninput="onColorChange('${v.key}', this.value, this)" />
+        <input type="text" class="hex-input" value="${val}" maxlength="7" oninput="onHexInput('${v.key}', this.value, this)" />
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function applyPreset(i) {
+  currentTheme = { ...PRESETS[i].colors };
+  applyTheme(currentTheme);
+  saveTheme();
+  renderThemeUI();
+  toast('Theme applied ✓');
+}
+
+function onColorChange(key, value, el) {
+  currentTheme[key] = value;
+  // sync hex input
+  el.parentElement.querySelector('.hex-input').value = value;
+  applyTheme(currentTheme);
+}
+
+function onHexInput(key, value, el) {
+  if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+    currentTheme[key] = value;
+    el.parentElement.querySelector('input[type="color"]').value = value;
+    applyTheme(currentTheme);
+  }
+}
+
+function saveTheme() {
+  localStorage.setItem(THEME_KEY, JSON.stringify(currentTheme));
+  toast('Theme saved ✓');
+}
+
+function resetTheme() {
+  currentTheme = { ...PRESETS[0].colors };
+  applyTheme(currentTheme);
+  localStorage.removeItem(THEME_KEY);
+  renderThemeUI();
+  toast('Theme reset to default ✓');
 }
 </script>
 </body>
