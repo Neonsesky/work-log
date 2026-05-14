@@ -358,7 +358,8 @@ function handleRequest(e){
     let result;
     if(action==='get'){
       const data=sheet.getDataRange().getValues(),headers=data[0];
-      result={success:true,entries:data.slice(1).map(r=>{const o={};headers.forEach((h,i)=>o[h]=r[i]);return o;})};
+      const tz=Session.getScriptTimeZone();
+      result={success:true,entries:data.slice(1).map(r=>{const o={};headers.forEach((h,i)=>{o[h]=(r[i] instanceof Date)?Utilities.formatDate(r[i],tz,'yyyy-MM-dd'):r[i];});return o;})};
     }else if(action==='add'){
       const d=new Date(body.date+'T12:00:00');
       sheet.appendRow([body.id,body.date,body.project,body.type||'',body.count,body.notes||'',d.toLocaleDateString('en-US',{month:'long',year:'numeric'}),'Q'+(Math.floor(d.getMonth()/3)+1)+' '+d.getFullYear(),d.getFullYear(),new Date().toISOString()]);
@@ -431,10 +432,11 @@ async function loadEntries(){
   try{
     const res=await api('get');
     if(!res||!res.success)throw new Error();
-    entries=(res.entries||[]).map(r=>({
-      id:String(r.ID),date:String(r.Date),project:String(r.Project),
-      type:String(r.Type||''),count:parseInt(r.Count)||0,notes:String(r.Notes||'')
-    })).filter(e=>e.date&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)).reverse();
+    entries=(res.entries||[]).map(r=>{
+      let date=String(r.Date||'').trim();
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){const p=new Date(date);if(!isNaN(p))date=p.getFullYear()+'-'+String(p.getMonth()+1).padStart(2,'0')+'-'+String(p.getDate()).padStart(2,'0');}
+      return{id:String(r.ID),date,project:String(r.Project),type:String(r.Type||''),count:parseInt(r.Count)||0,notes:String(r.Notes||'')};
+    }).filter(e=>e.date&&/^\d{4}-\d{2}-\d{2}$/.test(e.date)).reverse();
     localStorage.setItem(CK,JSON.stringify(entries));
     setSS('ok','Connected');
     document.getElementById('setup-banner').style.display='none';
