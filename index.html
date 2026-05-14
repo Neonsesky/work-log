@@ -366,13 +366,16 @@ function handleRequest(e){
       result={success:true};
     }else if(action==='update'){
       const data=sheet.getDataRange().getValues();
+      const ncols=data[0].length;
+      let found=false;
       for(let i=1;i<data.length;i++){
         if(String(data[i][0])===String(body.id)){
           const d=new Date(body.date+'T12:00:00');
-          sheet.getRange(i+1,1,1,10).setValues([[body.id,body.date,body.project,body.type||'',body.count,body.notes||'',d.toLocaleDateString('en-US',{month:'long',year:'numeric'}),'Q'+(Math.floor(d.getMonth()/3)+1)+' '+d.getFullYear(),d.getFullYear(),data[i][9]]]);break;
+          const fullRow=[body.id,body.date,body.project,body.type||'',Number(body.count)||0,body.notes||'',d.toLocaleDateString('en-US',{month:'long',year:'numeric'}),'Q'+(Math.floor(d.getMonth()/3)+1)+' '+d.getFullYear(),d.getFullYear(),data[i].length>9?data[i][9]:new Date().toISOString()];
+          sheet.getRange(i+1,1,1,ncols).setValues([fullRow.slice(0,ncols)]);found=true;break;
         }
       }
-      result={success:true};
+      result={success:found};
     }else if(action==='delete'){
       const data=sheet.getDataRange().getValues();
       for(let i=data.length-1;i>=1;i--){if(String(data[i][0])===String(body.id)){sheet.deleteRow(i+1);break;}}
@@ -425,7 +428,8 @@ function setSS(s,l){document.getElementById('sync-dot').className='sync-dot '+s;
 async function api(action,body){
   if(!sheetUrl)return null;
   const isGet=action==='get';
-  const r=await fetch(isGet?sheetUrl+'?action=get':sheetUrl,isGet?{method:'GET'}:{method:'POST',body:JSON.stringify({action,...body})});
+  const url=isGet?sheetUrl+'?action=get&_='+Date.now():sheetUrl;
+  const r=await fetch(url,isGet?{method:'GET'}:{method:'POST',body:JSON.stringify({action,...body})});
   return r.json();
 }
 async function loadEntries(){
@@ -504,7 +508,11 @@ async function submitForm(){
       localStorage.setItem(CK,JSON.stringify(entries));
       updateMetrics();toast('Entry updated ✓');cancelEdit();
       setSS('loading','Saving...');
-      try{await api('update',entries[idx]);setSS('ok','Saved');}catch{setSS('err','Save failed');}
+      try{
+        const res=await api('update',entries[idx]);
+        if(res&&res.success){setSS('ok','Saved');}
+        else{setSS('err','Sync error');toast('Saved locally but sheet sync failed — re-open Settings and redeploy the script',true);}
+      }catch{setSS('err','Save failed');toast('Connection error — change saved locally only',true);}
     }
   }else{
     const entry={id:String(Date.now()),date:raw,project,type:selType,count,notes};
