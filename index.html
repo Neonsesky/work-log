@@ -253,7 +253,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
     <!-- OVERVIEW -->
     <div class="page" id="page-overview">
-      <div class="page-header"><div class="page-label">Analytics</div><div class="page-title">Overview</div></div>
+      <div class="page-header"><div class="page-label">Analytics</div><div class="page-title">Overview</div><div class="page-sub" id="ov-sub"></div></div>
       <div class="metrics-grid" style="margin-bottom:1.5rem">
         <div class="metric-card"><div class="metric-label">This month</div><div class="metric-value" id="om-month">—</div><div class="metric-sub" id="om-month-sub"></div></div>
         <div class="metric-card"><div class="metric-label">This quarter</div><div class="metric-value" id="om-quarter">—</div><div class="metric-sub" id="om-quarter-sub"></div></div>
@@ -283,9 +283,20 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 
       <!-- BAR CHARTS -->
       <div class="charts-grid">
-        <div class="chart-card" style="grid-column:span 2"><div class="chart-title">Creatives by month — <span id="chart-year"></span></div><div id="bar-months"></div></div>
-        <div class="chart-card"><div class="chart-title">Top projects</div><div id="bar-projects"></div></div>
-        <div class="chart-card"><div class="chart-title">By creative type</div><div id="bar-types"></div></div>
+        <div class="chart-card" style="grid-column:span 2"><div class="chart-title">Creatives by year — all time</div><div id="bar-years"></div></div>
+        <div class="chart-card" style="grid-column:span 2">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+            <div class="chart-title" style="margin:0">Creatives by month</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="ov-cal-nav" onclick="barYearNav(-1)">‹</button>
+              <span id="chart-year" style="font-family:var(--mono);font-size:13px;font-weight:500;min-width:52px;text-align:center"></span>
+              <button class="ov-cal-nav" onclick="barYearNav(1)">›</button>
+            </div>
+          </div>
+          <div id="bar-months"></div>
+        </div>
+        <div class="chart-card"><div class="chart-title">Top projects — all time</div><div id="bar-projects"></div></div>
+        <div class="chart-card"><div class="chart-title">By creative type — all time</div><div id="bar-types"></div></div>
       </div>
     </div>
 
@@ -374,6 +385,7 @@ function handleRequest(e){
 let entries=[],sheetUrl='',selType='',editId=null;
 let calY,calM,calSel=null;
 let ovCalY,ovCalM,ovSelDay=null;
+let barYear;
 
 // ── INIT ──────────────────────────────────────────────────────────
 window.onload=()=>{
@@ -394,7 +406,7 @@ window.onload=()=>{
     const cal=document.getElementById('dp-cal'),inp=document.getElementById('f-date');
     if(!cal.contains(e.target)&&e.target!==inp)cal.classList.remove('open');
   });
-  const now=new Date();ovCalY=now.getFullYear();ovCalM=now.getMonth();
+  const now=new Date();ovCalY=now.getFullYear();ovCalM=now.getMonth();barYear=now.getFullYear();
 };
 
 // ── NAV ───────────────────────────────────────────────────────────
@@ -561,6 +573,14 @@ function updateMetrics(){
   });
   const total=entries.reduce((a,e)=>a+(e.count||0),0);
   document.getElementById('log-sub').textContent=total>0?total+' creatives logged across '+entries.length+' entries':'Record what you created';
+  const ovSub=document.getElementById('ov-sub');
+  if(ovSub){
+    if(entries.length){
+      const sorted=[...entries].sort((a,b)=>a.date.localeCompare(b.date));
+      const first=fmtDate(sorted[0].date),last=fmtDate(sorted[sorted.length-1].date);
+      ovSub.textContent=first===last?'Data from '+first:'Data from '+first+' to '+last;
+    }else{ovSub.textContent='';}
+  }
 }
 
 // ── HISTORY ───────────────────────────────────────────────────────
@@ -681,14 +701,20 @@ function selectOvDay(ds){
 }
 
 // ── BAR CHARTS ────────────────────────────────────────────────────
+function barYearNav(dir){barYear+=dir;renderBars();}
 function renderBars(){
-  const now=new Date(),yr=now.getFullYear();
+  const now=new Date(),yr=barYear||now.getFullYear();
   document.getElementById('chart-year').textContent=yr;
+  const ac=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
   const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const mt=Array(12).fill(0);
   entries.forEach(e=>{const d=new Date(e.date+'T12:00:00');if(d.getFullYear()===yr)mt[d.getMonth()]+=e.count||0;});
-  const ac=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
   document.getElementById('bar-months').innerHTML=mt.map((v,i)=>bRow(MO[i],v,Math.max(...mt,1),ac,52)).join('');
+  // by year — all time
+  const ym={};entries.forEach(e=>{const y=new Date(e.date+'T12:00:00').getFullYear();ym[y]=(ym[y]||0)+(e.count||0);});
+  const ya=Object.entries(ym).sort((a,b)=>a[0]-b[0]);
+  const ymx=ya.length?Math.max(...ya.map(x=>x[1])):1;
+  document.getElementById('bar-years').innerHTML=ya.length?ya.map(([y,c])=>bRow(String(y),c,ymx,ac,52)).join(''):'<div class="empty-state" style="padding:1.5rem">No data yet</div>';
   const pm={};entries.forEach(e=>{pm[e.project]=(pm[e.project]||0)+(e.count||0);});
   const top=Object.entries(pm).sort((a,b)=>b[1]-a[1]).slice(0,7);
   document.getElementById('bar-projects').innerHTML=top.length?top.map(([n,c])=>bRow(n,c,top[0][1],'#60b8f0',90)).join(''):'<div class="empty-state" style="padding:1.5rem">No data yet</div>';
