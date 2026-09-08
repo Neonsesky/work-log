@@ -1,0 +1,23 @@
+{
+  "name": "Creative Work Log",
+  "short_name": "Work Log",
+  "description": "Track the creatives you ship each day and turn them into reports.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
+  "background_color": "#fcfbf8",
+  "theme_color": "#fcfbf8",
+  "lang": "en",
+  "categories": ["productivity", "business"],
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Log an entry", "url": "./?page=log", "description": "Add what you made today" },
+    { "name": "Weekly report", "url": "./?page=reports", "description": "Open last week's report" }
+  ]
+}
