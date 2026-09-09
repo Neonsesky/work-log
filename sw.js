@@ -1,5 +1,5 @@
 /* Creative Work Log service worker: offline app shell + install support. */
-const CACHE = 'cwl-shell-v3';
+const CACHE = 'cwl-shell-v4';
 const SHELL = [
   './',
   './index.html',
@@ -9,7 +9,8 @@ const SHELL = [
   './assets/icon-512.png',
   './assets/icon-maskable-512.png',
   './assets/apple-touch-icon.png',
-  './assets/mbio-logo.png'
+  './assets/mbio-logo-light.png',
+  './assets/mbio-logo-dark.png'
 ];
 
 self.addEventListener('install', (e) => {
