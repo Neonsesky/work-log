@@ -6,7 +6,7 @@
 <title>Creative Work Log</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
 <style>
-:root{--bg:#0e0e0e;--surface:#161616;--surface2:#1e1e1e;--border:#2a2a2a;--border2:#333;--text:#f0ede8;--muted:#6b6b6b;--muted2:#444;--accent:#c8f060;--accent-dim:#c8f06022;--accent-text:#0e0e0e;--red:#ff5a5a;--red-dim:#ff5a5a18;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--radius:10px;--radius-sm:6px;}
+:root{--bg:#0a0f1e;--surface:#111827;--surface2:#1a2338;--border:#1c2740;--border2:#28345a;--text:#e8edf8;--muted:#8891a6;--muted2:#4c5568;--accent:#ffa900;--accent-dim:#ffa90022;--accent-text:#0a0f1e;--red:#ff5a5a;--red-dim:#ff5a5a18;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--radius:10px;--radius-sm:6px;}
 *{box-sizing:border-box;margin:0;padding:0;}html{font-size:15px;}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;}
 .shell{display:grid;grid-template-columns:220px 1fr;min-height:100vh;}
@@ -335,8 +335,8 @@ const SK='cwl_sheet_url',CK='cwl_entries_cache',TK='cwl_theme';
 const TYPES=['Social','Paid Ads','Videos','mb.insider','Email comms','Print assets','thefourthweb','Other'];
 const TC=[{b:'#c8f060',c:'#c8f060'},{b:'#60b8f0',c:'#60b8f0'},{b:'#f060b8',c:'#f060b8'},{b:'#f0a030',c:'#f0a030'},{b:'#a060f0',c:'#a060f0'},{b:'#60f0a0',c:'#60f0a0'},{b:'#f06060',c:'#f06060'},{b:'#a0a0a0',c:'#a0a0a0'}];
 const PRESETS=[
+  {n:'Midnight amber',bg:'#0a0f1e',s:'#111827',t:'#e8edf8',a:'#ffa900'},
   {n:'Dark lime',bg:'#0e0e0e',s:'#161616',t:'#f0ede8',a:'#c8f060'},
-  {n:'Dark blue',bg:'#0a0f1e',s:'#111827',t:'#e8edf8',a:'#60a8f0'},
   {n:'Dark rose',bg:'#100a0e',s:'#1a1018',t:'#f8edf5',a:'#f060a8'},
   {n:'Dark amber',bg:'#0f0e0a',s:'#1a1810',t:'#f8f0e0',a:'#f0b040'},
   {n:'Light',bg:'#f5f5f2',s:'#ffffff',t:'#1a1a1a',a:'#2563eb'},
@@ -823,11 +823,11 @@ function buildPresets(){
 function applyPreset(i){const p=PRESETS[i];applyColors(p.bg,p.s,p.t,p.a);syncPickers();document.querySelectorAll('.theme-preset').forEach((el,j)=>el.classList.toggle('active',j===i));}
 function getTheme(){try{return JSON.parse(localStorage.getItem(TK));}catch{return null;}}
 function loadTheme(){const t=getTheme();if(t)applyColors(t.bg,t.surface,t.text,t.accent);}
-function saveTheme(){const g=k=>document.getElementById('hex-'+k).value||'';const t={bg:g('bg')||'#0e0e0e',surface:g('surface')||'#161616',text:g('text')||'#f0ede8',accent:g('accent')||'#c8f060'};localStorage.setItem(TK,JSON.stringify(t));toast('Theme saved ✓');}
-function resetTheme(){localStorage.removeItem(TK);applyColors('#0e0e0e','#161616','#f0ede8','#c8f060');syncPickers();buildPresets();toast('Reset to default');}
+function saveTheme(){const g=k=>document.getElementById('hex-'+k).value||'';const t={bg:g('bg')||'#0a0f1e',surface:g('surface')||'#111827',text:g('text')||'#e8edf8',accent:g('accent')||'#ffa900'};localStorage.setItem(TK,JSON.stringify(t));toast('Theme saved ✓');}
+function resetTheme(){localStorage.removeItem(TK);applyColors('#0a0f1e','#111827','#e8edf8','#ffa900');syncPickers();buildPresets();toast('Reset to default');}
 function syncPickers(){
   const r=document.documentElement;
-  const vals={bg:r.style.getPropertyValue('--bg').trim()||'#0e0e0e',surface:r.style.getPropertyValue('--surface').trim()||'#161616',text:r.style.getPropertyValue('--text').trim()||'#f0ede8',accent:r.style.getPropertyValue('--accent').trim()||'#c8f060'};
+  const vals={bg:r.style.getPropertyValue('--bg').trim()||'#0a0f1e',surface:r.style.getPropertyValue('--surface').trim()||'#111827',text:r.style.getPropertyValue('--text').trim()||'#e8edf8',accent:r.style.getPropertyValue('--accent').trim()||'#ffa900'};
   ['bg','surface','text','accent'].forEach(k=>{const v=vals[k],h=v.length===4?'#'+v[1]+v[1]+v[2]+v[2]+v[3]+v[3]:v;const cp=document.getElementById('cp-'+k),hx=document.getElementById('hex-'+k),sw=document.getElementById('swatch-'+k);if(cp)cp.value=h;if(hx)hx.value=h;if(sw)sw.style.background=h;});
 }
 function onColorPick(key,val){document.getElementById('hex-'+key).value=val;document.getElementById('swatch-'+key).style.background=val;applyFromPickers();}

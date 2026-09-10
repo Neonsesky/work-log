@@ -82,7 +82,7 @@ h1,h2,h3{font-weight:500;letter-spacing:-.01em}
 .sidebar{position:sticky;top:0;height:100vh;padding:18px 14px;display:flex;flex-direction:column;gap:6px;border-right:1px solid var(--glass-edge);background:var(--glass);backdrop-filter:blur(34px) saturate(190%);-webkit-backdrop-filter:blur(34px) saturate(190%)}
 .main{padding:32px 40px 96px;max-width:1180px;width:100%;margin:0 auto;min-width:0}
 .brand{display:flex;align-items:center;gap:12px;padding:8px 10px 18px}
-.brand-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),color-mix(in oklab,var(--accent) 45%,var(--accent2)) 60%,color-mix(in oklab,var(--accent) 40%,var(--accent3)));display:grid;place-items:center;box-shadow:var(--shadow-md);position:relative;overflow:hidden;transition:transform .5s var(--ease)}
+.brand-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,color-mix(in oklab,var(--accent) 55%,transparent),color-mix(in oklab,var(--accent2) 32%,transparent) 60%,color-mix(in oklab,var(--accent3) 28%,transparent));backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%);border:1px solid var(--glass-edge);display:grid;place-items:center;box-shadow:var(--shadow-md);position:relative;overflow:hidden;transition:transform .5s var(--ease),background-color .3s var(--ease)}
 .brand-mark::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0) 55%)}
 .brand-mark svg{position:relative;z-index:1}
 .brand:hover .brand-mark{transform:rotate(-6deg) scale(1.04)}
@@ -328,6 +328,8 @@ tr:hover .row-actions{opacity:1}
 .range-btn.open{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-dim);background:var(--surface)}
 .range-btn span{flex:1}
 .range-btn small{color:var(--muted);font-family:var(--mono);font-size:11px}
+.quick-chips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.quick-chips .chip{padding:5px 12px;font-size:12.5px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .chip{padding:8px 14px;border-radius:999px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);font-size:13px;transition:all .2s var(--ease)}
 .chip:hover{border-color:var(--text);color:var(--text);transform:translateY(-1px)}
@@ -429,7 +431,7 @@ tr:hover .row-actions{opacity:1}
 
 /* Responsive */
 @media (max-width:1000px){.g4{grid-template-columns:repeat(2,1fr)}.rp-kpis{grid-template-columns:repeat(3,1fr)}.rp-two{grid-template-columns:1fr}}
-@media (max-width:840px){.shell{grid-template-columns:1fr}.sidebar{display:none}.topbar{display:flex}.tabbar{display:grid}.main{padding:18px 16px calc(var(--tabbar-h) + 36px)}.g3,.g2{grid-template-columns:1fr}.span2{grid-column:span 1}.form-grid{grid-template-columns:1fr}.donut-wrap{grid-template-columns:1fr;justify-items:center}.report-doc{padding:26px 20px;border-radius:24px}.rp-kpis{grid-template-columns:repeat(2,1fr)}.pickers,.profile-grid{grid-template-columns:1fr}.profile-grid .full{grid-column:span 1}.tbl .hide-m{display:none}.day{min-height:46px;padding:5px 6px}.day .dc{font-size:14px}.range-btn{min-width:0;width:100%}.dp-pop{left:0;right:0;width:auto;min-width:0;max-width:none}.dp-grid{grid-template-columns:repeat(7,1fr)}.dp-grid.wk{grid-template-columns:26px repeat(7,1fr)}.dp-d{height:40px}.metric .val{font-size:26px}}
+@media (max-width:840px){.shell{grid-template-columns:1fr}.sidebar{display:none}.topbar{display:flex}.tabbar{display:grid}.main{padding:18px 16px calc(var(--tabbar-h) + 36px)}.g3,.g2{grid-template-columns:1fr}.span2{grid-column:span 1}.form-grid{grid-template-columns:1fr}.donut-wrap{grid-template-columns:1fr;justify-items:center}.report-doc{padding:26px 20px;border-radius:24px}.rp-kpis{grid-template-columns:repeat(2,1fr)}.pickers,.profile-grid{grid-template-columns:1fr}.profile-grid .full{grid-column:span 1}.tbl .hide-m{display:none}.day{min-height:46px;padding:5px 6px}.day .dc{font-size:14px}.range-btn{min-width:0;width:100%}.dp-pop{left:0;right:0;width:auto;min-width:0;max-width:none}.dp-grid{grid-template-columns:repeat(7,1fr)}.dp-grid.wk{grid-template-columns:26px repeat(7,1fr)}.dp-d{height:40px}.metric .val{font-size:26px}.row-actions{opacity:1}.btn-icon{min-height:38px;width:38px}}
 @media (max-width:480px){.g4{grid-template-columns:repeat(2,1fr)}.title{font-size:24px}.cols{height:130px}}
 
 /* Print: the report becomes the whole document, full-bleed, no card border.
@@ -498,7 +500,15 @@ tr:hover .row-actions{opacity:1}
         <div class="edit-banner"><span>Editing an entry. Save when you're happy with it.</span><button class="btn-ghost btn btn-sm" onclick="cancelEdit()">Cancel</button></div>
         <div class="form-grid">
           <div class="field"><label>Date</label><div class="dp"><button class="range-btn" id="f-date-btn" onclick="toggleDp('single')" style="width:100%"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="f-date-label">Today</span></button><div class="dp-pop" id="dp-single"></div></div></div>
-          <div class="field"><label>How many creatives</label><input type="number" id="f-count" min="1" inputmode="numeric" placeholder="6"/></div>
+          <div class="field"><label>How many creatives</label><input type="number" id="f-count" min="1" inputmode="numeric" placeholder="6"/>
+            <div class="quick-chips">
+              <button type="button" class="chip" onclick="setCount(1)">1</button>
+              <button type="button" class="chip" onclick="setCount(2)">2</button>
+              <button type="button" class="chip" onclick="setCount(3)">3</button>
+              <button type="button" class="chip" onclick="setCount(5)">5</button>
+              <button type="button" class="chip" onclick="setCount(10)">10</button>
+            </div>
+          </div>
         </div>
         <div class="field" style="margin-top:16px"><label>Project or topic</label><input type="text" id="f-project" placeholder="Spot Exchange launch banners" autocomplete="off" list="project-list"/><datalist id="project-list"></datalist></div>
         <div class="field" style="margin-top:16px"><label>Type</label><div class="pills" id="type-pills"></div></div>
@@ -878,6 +888,7 @@ function renderPills(){
   document.getElementById('type-pills').innerHTML=TYPES.map(t=>`<button class="pill${selType===t?' on':''}" style="--c:${TC[t]}" onclick="selectType('${t}')"><i></i>${t}</button>`).join('');
 }
 function selectType(t){selType=selType===t?'':t;renderPills();}
+function setCount(n){const el=document.getElementById('f-count');el.value=n;el.focus();}
 function updateProjectList(){
   const seen=new Map();entries.forEach(e=>seen.set(e.project,(seen.get(e.project)||0)+1));
   document.getElementById('project-list').innerHTML=[...seen.entries()].sort((a,b)=>b[1]-a[1]).slice(0,40).map(([p])=>`<option value="${esc(p)}">`).join('');
