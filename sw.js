@@ -1,5 +1,5 @@
 /* Creative Work Log service worker: offline app shell + install support. */
-const CACHE = 'cwl-shell-v4';
+const CACHE = 'cwl-shell-v5';
 const SHELL = [
   './',
   './index.html',
