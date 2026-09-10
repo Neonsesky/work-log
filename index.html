@@ -415,6 +415,11 @@ tr:hover .row-actions{opacity:1}
 .egg:hover{transform:translateY(-2px) rotate(-1deg);box-shadow:0 12px 30px -12px #000}
 .egg i{width:8px;height:8px;border-radius:50%;background:#c8f060;box-shadow:0 0 12px #c8f060}
 .status{font-size:12.5px;color:var(--muted);margin-top:10px;min-height:16px}
+.thanks-card{position:relative;overflow:hidden;text-align:center;padding:30px 24px 26px}
+.thanks-card::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--accent),color-mix(in oklab,var(--accent) 40%,var(--accent2)),color-mix(in oklab,var(--accent) 40%,var(--accent3)))}
+.thanks-name{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);background:var(--accent-dim);padding:5px 12px;border-radius:999px;margin-bottom:12px}
+.thanks-card h3{font-size:16px;font-weight:600;margin-bottom:8px}
+.thanks-card p{font-size:13.5px;color:var(--muted);max-width:440px;margin:0 auto;line-height:1.65}
 .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .profile-grid .full{grid-column:span 2}
 
@@ -445,9 +450,9 @@ tr:hover .row-actions{opacity:1}
   .orbs,.sidebar,.topbar,.tabbar,.toast,.page-head,.rp-toolbar,.banner,#report-controls{display:none!important}
   .shell{display:block}.main{padding:0;max-width:none}
   .page{display:none!important}#page-reports{display:block!important;animation:none}
-  .report-doc{border:none;box-shadow:none;border-radius:0;padding:0;background:var(--surface)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .report-doc{box-shadow:none;border-radius:0;padding:0;border:1px solid var(--border)!important;background:var(--surface)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
   .report-doc::before{display:none}
-  .rp-logo-dark{display:none!important}.rp-logo-light{display:inline-block!important}
+  .kpi,.rp-note{background:color-mix(in oklab,var(--text) 9%,var(--surface))!important;border:1px solid var(--border)}
   .rp-head,.rp-sec,.kpi,.rp-two>*,.cols,.donut-wrap{break-inside:avoid}
   .rp-table tr{break-inside:avoid}
   .bar .f,.col .stick{transition:none}
@@ -670,6 +675,12 @@ tr:hover .row-actions{opacity:1}
           <div class="toggle"><div><div class="t">Backup</div><div class="d" id="backup-status">A CSV backup saves to your Downloads automatically about every two weeks. You can also grab one now.</div></div><button class="btn btn-sm" onclick="exportCSV()">Back up now</button></div>
           <div class="toggle"><div><div class="t">Restore from a backup</div><div class="d">Import a previously exported CSV. Matches existing entries by date, project, type and count — only adds what's missing.</div></div><label class="btn btn-sm" style="cursor:pointer">Choose file<input type="file" accept=".csv" style="display:none" onchange="restoreCSV(this.files[0]);this.value=''"/></label></div>
           <div class="toggle"><div><div class="t">The original look</div><div class="d">The first version of this app, dark and lime, kept for old times' sake.</div></div><a class="egg" href="classic/"><i></i>v1 classic</a></div>
+        </div>
+
+        <div class="card thanks-card span2">
+          <div class="thanks-name">Nihal Pathan</div>
+          <h3>Thanks for the push, Nihal</h3>
+          <p>This whole tracker exists because you suggested I build it. Wouldn't be here otherwise — appreciate you.</p>
         </div>
       </div>
     </section>
@@ -1340,7 +1351,10 @@ function printReport(){
 }
 function applyPrintLight(){
   _printSnapshot={style:document.documentElement.getAttribute('style'),theme:document.getElementById('meta-theme').getAttribute('content')};
-  applyColors('#ffffff','#ffffff','#181818','#ffa900');
+  applyColors('#f4f2ec','#ffffff','#15130f','#ffa900');
+  const r=document.documentElement.style;
+  r.setProperty('--muted','#54524c');r.setProperty('--muted2','#7a776f');
+  r.setProperty('--border','#dfdbd0');r.setProperty('--border2','#cfc9ba');
   renderReport();
 }
 function restorePrintTheme(){
