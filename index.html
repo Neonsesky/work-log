@@ -760,7 +760,10 @@ window.addEventListener('load',()=>{
     const c=localStorage.getItem(CK);if(c){try{entries=JSON.parse(c);}catch{}}
     document.getElementById('setup-banner').classList.add('show');setSync('idle','Not connected');refreshAll();
   }
-  document.addEventListener('click',e=>{if(!e.target.closest('.dp'))closeDps();});
+  document.addEventListener('click',e=>{
+    const path=e.composedPath?e.composedPath():[e.target];
+    if(!path.some(el=>el instanceof Element&&el.classList&&el.classList.contains('dp')))closeDps();
+  });
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDps();}});
   document.getElementById('f-count').addEventListener('keydown',e=>{if(e.key==='Enter')submitForm();});
   document.getElementById('f-project').addEventListener('keydown',e=>{if(e.key==='Enter')submitForm();});
@@ -1123,7 +1126,7 @@ function renderDp(){
   const s=range?rStart:fDate,e=range?(rEnd||rHover):fDate;
   const lo=s&&e?(s<e?s:e):s,hi=s&&e?(s<e?e:s):s;
   let cells='';
-  const cell=(ds,day,out)=>{const cls=['dp-d'];if(out)cls.push('out');if(ds===t)cls.push('today');if(has.has(ds))cls.push('has');if(range){if(lo&&hi&&ds>lo&&ds<hi)cls.push('in');if(ds===lo)cls.push('s');if(ds===hi)cls.push('e');if(lo&&hi&&lo!==hi&&(ds===lo||ds===hi))cls.push('in');}else if(ds===fDate)cls.push('s');return `<button class="${cls.join(' ')}" onclick="dpPick('${ds}')" onmouseenter="dpHover('${ds}')">${day}</button>`;};
+  const cell=(ds,day,out)=>{const cls=['dp-d'];if(out)cls.push('out');if(ds===t)cls.push('today');if(has.has(ds))cls.push('has');if(range){if(lo&&hi&&ds>lo&&ds<hi)cls.push('in');if(ds===lo)cls.push('s');if(ds===hi)cls.push('e');if(lo&&hi&&lo!==hi&&(ds===lo||ds===hi))cls.push('in');}else if(ds===fDate)cls.push('s');return `<button class="${cls.join(' ')}" data-ds="${ds}" onclick="dpPick('${ds}')" onmouseenter="dpHover('${ds}')">${day}</button>`;};
   const rows=[];let row=[];
   for(let i=0;i<first;i++){const d=dimp-first+1+i;const pm=m===0?{y:y-1,m:11}:{y,m:m-1};row.push(cell(`${pm.y}-${String(pm.m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,d,true));}
   for(let d=1;d<=dim;d++){row.push(cell(`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,d,false));if(row.length===7){rows.push(row);row=[];}}
@@ -1136,7 +1139,20 @@ function renderDp(){
   }).join('');
   pop.innerHTML=`<div class="dp-head"><button class="btn btn-icon" onclick="dpNav(-1)">‹</button><b>${MONTHS[m]} ${y}</b><button class="btn btn-icon" onclick="dpNav(1)">›</button></div><div class="dp-grid${range?' wk':''}">${range?'<div></div>':''}${DOW.map(d=>`<div class="dp-dow">${d}</div>`).join('')}${grid}</div><div class="dp-foot"><span>${range?(rStart&&!rEnd?'Now pick the end date':rStart&&rEnd?rangeText():'Click a start date, then an end date. Or hit "wk".'):'Dots mark days with entries'}</span><button class="btn btn-ghost btn-sm" onclick="${range?'setRange(\'thisweek\',document.querySelector(\'[data-r=thisweek]\'));closeDps()':'dpPick(\''+t+'\')'}">${range?'This week':'Today'}</button></div>`;
 }
-function dpHover(ds){if(dpMode==='range'&&rStart&&!rEnd){rHover=ds;renderDp();}}
+function dpHover(ds){
+  if(dpMode!=='range'||!rStart||rEnd||rHover===ds)return;
+  rHover=ds;
+  const pop=document.getElementById('dp-range');
+  const lo=ds<rStart?ds:rStart,hi=ds<rStart?rStart:ds;
+  pop.querySelectorAll('.dp-d').forEach(btn=>{
+    const d=btn.dataset.ds;if(!d)return;
+    btn.classList.remove('in','s','e');
+    if(d===rStart)btn.classList.add('s');
+    if(d===ds)btn.classList.add('e');
+    if(d>lo&&d<hi)btn.classList.add('in');
+    if(lo!==hi&&(d===lo||d===hi))btn.classList.add('in');
+  });
+}
 function dpPick(ds){
   if(dpMode==='single'){setFormDate(ds);closeDps();return;}
   if(!rStart||(rStart&&rEnd)){rStart=ds;rEnd=null;rHover=null;renderDp();return;}
